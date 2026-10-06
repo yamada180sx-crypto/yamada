@@ -79,7 +79,49 @@
         <p>集中した時間を積み重ねよう</p>
       </article>
     </section>
+<section class="panel aichi-panel" id="aichi">
+  <span class="tag">AICHI · 2027</span>
+  <h2>愛知県公立高校対策</h2>
+  <p>
+    令和9年度入学に向けた、5教科の基礎確認。
+    4択のオリジナル問題10問で、解答と復習を練習しよう。
+  </p>
+  <p class="small">
+    公式過去問ではありません。
+    本番の出題形式・試験時間との一致は未確認です。
+    最新の入試案内は公式サイトで確認してください。
+  </p>
 
+  <div class="aichi-actions">
+    <button class="primary" id="aichiPractice">10問を演習する</button>
+    <button class="secondary" id="aichiReview" disabled>
+      苦手問題を復習
+    </button>
+    <span>復習待ち <strong id="aichiMistakes">0問</strong></span>
+  </div>
+
+  <div id="aichiBreakdown" class="aichi-breakdown"></div>
+
+  <div class="aichi-mock">
+    <label for="aichiDuration">時間を決めて練習</label>
+    <select id="aichiDuration">
+      <option value="10">10分</option>
+      <option value="20">20分</option>
+      <option value="30">30分</option>
+    </select>
+    <button class="secondary" id="aichiMock">
+      ミニ模擬演習を始める
+    </button>
+  </div>
+
+  <p>
+    <a href="https://www.pref.aichi.jp/soshiki/kotogakko/"
+       target="_blank" rel="noopener noreferrer">
+      愛知県教育委員会の高校教育・入試情報 ↗
+    </a>
+  </p>
+</section>
+    
     <section id="subjects">
       <div class="section-head">
         <div>
@@ -131,7 +173,33 @@
     <div id="feedback" aria-live="polite"></div>
     <button id="next" class="primary" hidden>次の問題へ →</button>
   </dialog>
+<dialog id="aichiQuiz">
+  <div class="dialog-head">
+    <span class="tag">愛知県対策 · オリジナル演習</span>
+    <button class="close" id="aichiClose" aria-label="演習を閉じる">
+      ×
+    </button>
+  </div>
 
+  <p id="aichiTime" role="timer"></p>
+
+  <div id="aichiQuestionArea">
+    <p class="small" id="aichiQuestionMeta"></p>
+    <h2 id="aichiQuestionText"></h2>
+    <div id="aichiChoices"></div>
+    <p id="aichiFeedback" aria-live="polite"></p>
+    <button class="primary" id="aichiNext" hidden>
+      次の問題へ →
+    </button>
+  </div>
+
+  <div id="aichiResult" hidden>
+    <h2 id="aichiResultTitle"></h2>
+    <p id="aichiResultNote"></p>
+    <div id="aichiExplanations"></div>
+  </div>
+</dialog>
+  
   <script type="module" src="app.js"></script>
 </body>
 </html>
