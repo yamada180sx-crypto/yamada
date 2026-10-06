@@ -1,6 +1,7 @@
 import { firebaseConfig } from './firebase-config.js';
+import { parseQuestionBank } from './question-bank.js';
 
-export function connectAccount({ onReset, onRecords }) {
+export function connectAccount({ onReset, onRecords, onQuestions }) {
   const message = document.getElementById('accountMessage');
   const login = document.getElementById('loginButton');
   const logout = document.getElementById('logoutButton');
@@ -36,6 +37,10 @@ export function connectAccount({ onReset, onRecords }) {
       '接続できません。通信環境を確認してください。',
     'permission-denied':
       'このアカウントには利用許可がありません。管理者に確認してください。',
+    'questions/not-configured':
+      '問題データがまだ登録されていません。管理者に確認してください。',
+    'questions/invalid':
+      '問題データを読み込めませんでした。管理者に確認してください。',
     'unavailable':
       '接続できません。通信環境を確認してください。'
   }[error.code] ||
@@ -187,6 +192,16 @@ export function connectAccount({ onReset, onRecords }) {
               return;
             }
 
+            show('問題データを読み込んでいます…');
+            const bankDocument = await dbSdk.getDocFromServer(
+              dbSdk.doc(db, 'questionBanks', 'current')
+            );
+            if (current !== generation) return;
+            if (!bankDocument.exists()) {
+              throw { code: 'questions/not-configured' };
+            }
+            const bank = parseQuestionBank(bankDocument.data().payload);
+            onQuestions(bank);
             user = nextUser;
 
             unsubscribe = dbSdk.onSnapshot(
@@ -210,6 +225,7 @@ export function connectAccount({ onReset, onRecords }) {
           } catch (error) {
             if (current === generation) {
               account.ready = false;
+              onReset();
               show(
                 errorText(error) +
                 ' ログアウトしてから再度お試しください。'

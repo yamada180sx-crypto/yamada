@@ -21,9 +21,9 @@ GoogleログインとFirestoreの本人専用記録を使用します。`firebas
 
 ## 愛知県公立高校対策（令和9年度入学向け）
 
-`aichi.js` と `aichi-bank.js` にオリジナル4択問題50問を収録。アップロードされた令和7・8年度のPDFの分野・形式を参考に40問追加しました。問題セット・教科・1回の出題数を選べます。詳しくは [PDF_REVIEW.md](PDF_REVIEW.md) を参照してください。通常演習、10/20/30分を選ぶミニ模擬演習、直近に間違えた問題の復習、教科別正答率を追加しました。公式過去問ではありません。公式サイトへのアクセスが環境のネットワーク制限により拒否され、令和9年度の正式な出題形式・試験時間は未確認です。時間設定は練習用です。
+Firestoreの `questionBanks/current` からオリジナル4択問題50問を取得。アップロードされた令和7・8年度のPDFの分野・形式を参考に40問追加しました。問題セット・教科・1回の出題数を選べます。詳しくは [PDF_REVIEW.md](PDF_REVIEW.md) を参照してください。通常演習、10/20/30分を選ぶミニ模擬演習、直近に間違えた問題の復習、教科別正答率を追加しました。公式過去問ではありません。公式サイトへのアクセスが環境のネットワーク制限により拒否され、令和9年度の正式な出題形式・試験時間は未確認です。時間設定は練習用です。
 
-公開するには `index.html`, `style.css`, `app.js`, `aichi.js`, `aichi-bank.js` の更新が必要です。`firestore.rules` の新しい全文をFirebase Consoleで公開してください（R7/R8/R9の問題IDの questionId を保存するため）。古いルールのままだと愛知県対策の保存は拒否されます。既存の認証設定と許可リストは引き続き使用します。未解答は記録しません。復習は最新の解答が不正解だった問題を対象にします。
+公開アプリには問題データを同梱しません。[PRIVATE_QUESTIONS_SETUP.md](PRIVATE_QUESTIONS_SETUP.md) に従って問題データをFirestoreに登録し、`firestore.rules` の全文をFirebase Consoleで公開してください。古いルールのままだと問題の取得は拒否されます。既存の認証設定と許可リストは引き続き使用します。未解答は記録しません。復習は最新の解答が不正解だった問題を対象にします。
 
 検証：ブラウザと模擬Firebaseでタイトル、演習、誤答復習、解き直し後の復習待ち減少、模擬演習中の解説非表示、ログアウト時の消去を確認。実際のFirebaseで新しいルールの適用・保存・別端末への同期は公開後の確認が必要です。
 
@@ -32,7 +32,7 @@ GoogleログインとFirestoreの本人専用記録を使用します。`firebas
 Node.jsとPlaywright、Chromiumがある環境でHTTPサーバーを起動してから実行します。
 
 ```sh
-STUDY_APP_URL=http://127.0.0.1:8001 node tests/smoke.cjs
+QUESTION_BANK_FILE=/path/outside/repository/question-bank.json STUDY_APP_URL=http://127.0.0.1:8001 node tests/smoke.cjs
 ```
 
 `tests/smoke.cjs` はFirebase SDKの応答を模擬し、実サービスへの書き込みは行いません。Chromiumの実行ファイルは既定で `/usr/bin/chromium` を使います。公開環境のFirebaseルール・Googleログイン・同期の確認は別途必要です。
@@ -41,4 +41,4 @@ STUDY_APP_URL=http://127.0.0.1:8001 node tests/smoke.cjs
 
 勉強画面とナビゲーションは初期状態で非表示です。Googleログイン、allowedUsersの利用許可確認、学習記録の読み込みに成功した後に表示します。ログアウト・記録のアクセス拒否では非表示に戻し、演習とタイマーを終了します。
 
-GitHub Pages上のHTML・JavaScript・問題データは公開ファイルです。この画面制御は問題データ自体を非公開にするものではありません。個人の学習記録へのアクセスはFirestoreルールで保護します。
+GitHub Pages上のHTML・JavaScriptは公開ファイルですが、現在の配信ファイルに問題文・選択肢・解答・解説は含めません。問題データと個人の学習記録へのアクセスはFirestoreルールで保護します。過去のGit履歴に公開済み問題は残ります。許可された利用者が取得した問題を保存することまでは制限できません。

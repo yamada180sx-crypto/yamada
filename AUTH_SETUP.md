@@ -1,6 +1,6 @@
 # Googleログインの設定（GitHub Pages + Firebase）
 
-アプリのHTMLと問題は公開されたままです。学習記録へのアクセスはFirebase AuthenticationとFirestoreのルールで制限します。許可リストに登録されたユーザーのみ学習できます。
+アプリのHTMLとJavaScriptは公開し、問題と学習記録はFirestoreに保存します。許可リストに登録されたGoogleアカウントだけが問題と本人の記録を読み込めます。問題登録は [PRIVATE_QUESTIONS_SETUP.md](PRIVATE_QUESTIONS_SETUP.md) を参照してください。
 
 ## 1. FirebaseプロジェクトとWebアプリ
 
@@ -24,7 +24,7 @@
 
 ## 4. アプリの更新と娘さんの利用許可
 
-1. GitHubの `main` の同じ階層に `index.html`, `style.css`, `app.js`, `auth.js`, `firebase-config.js` をアップロード・コミット。既存の3ファイルは上書き更新が必要です。
+1. GitHubの `main` の同じ階層に `index.html`, `style.css`, `app.js`, `auth.js`, `firebase-config.js`, `aichi.js`, `question-bank.js` をアップロード・コミット。既存の3ファイルは上書き更新が必要です。
 2. GitHub Pagesの公開完了後、娘さんのGoogleアカウントで一度ログインします。まだ利用許可がないためアプリは拒否しますが、AuthenticationのUsers一覧にアカウントが登録されます。
 3. Firebase Console → Authentication → Usersで、娘さんのユーザーUIDをコピー。
 4. Firestore → Data → Start collection。コレクションID `allowedUsers`、ドキュメントIDにコピーしたUIDを指定。フィールド `enabled` をbooleanの `true` として追加し保存（現在のルールはフィールド値ではなくドキュメントの存在で許可します）。

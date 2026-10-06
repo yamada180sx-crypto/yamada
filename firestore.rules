@@ -6,6 +6,11 @@ service cloud.firestore {
         && request.auth.uid == uid
         && exists(/databases/$(database)/documents/allowedUsers/$(uid));
     }
+    match /questionBanks/{bankId} {
+      allow get: if bankId == 'current'
+        && request.auth != null && approved(request.auth.uid);
+      allow list, create, update, delete: if false;
+    }
     match /allowedUsers/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
       allow list, create, update, delete: if false;

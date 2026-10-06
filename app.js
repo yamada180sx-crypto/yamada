@@ -2,83 +2,23 @@
 import { connectAccount } from './auth.js';
 import { createAichiPractice } from './aichi.js';
 
-const subjects = [
-  {
-    name: '数学', icon: '∑', tint: '#e7eee1',
-    desc: '計算・関数・図形',
-    questions: [
-      ['方程式 2x + 5 = 17 の解は？',
-        ['x = 4', 'x = 6', 'x = 8'], 1,
-        '両辺から5を引くと 2x = 12。両辺を2で割ると x = 6 です。'],
-      ['関数 y = 3x² で、x = −2 のときの y は？',
-        ['−12', '6', '12'], 2,
-        '(−2)² = 4 なので、y = 3 × 4 = 12 です。'],
-      ['直角三角形の直角をはさむ2辺が3cmと4cm。斜辺の長さは？',
-        ['5cm', '7cm', '6cm'], 0,
-        '三平方の定理より、斜辺² = 3² + 4² = 25。斜辺は5cmです。']
-    ]
-  },
-  {
-    name: '英語', icon: 'Aa', tint: '#e4edf4',
-    desc: '単語・文法・読解',
-    questions: [
-      ['空欄に入る語は？ I have (   ) in Tokyo for three years.',
-        ['live', 'lived', 'living'], 1,
-        '現在完了形は have / has + 過去分詞。live の過去分詞は lived です。'],
-      ['「もし明日雨なら、家にいます。」If it (   ) tomorrow, I will stay home.',
-        ['rains', 'will rain', 'rained'], 0,
-        '未来のことでも、条件を表す if の節では現在形を使います。'],
-      ['「これは私の兄が撮った写真です。」This is a picture (   ) my brother took.',
-        ['who', 'that', 'where'], 1,
-        '先行詞が物で、関係代名詞が目的語となる場合は that や which を使います。']
-    ]
-  },
-  {
-    name: '国語', icon: '文', tint: '#f5e6e1',
-    desc: '漢字・文法・古文',
-    questions: [
-      ['「彼はまるで風のように走った。」で使われている表現技法は？',
-        ['直喩', '倒置法', '擬人法'], 0,
-        '「まるで」「ように」などを使ってたとえる表現を直喩といいます。'],
-      ['「美しい花が咲く。」の「美しい」の品詞は？',
-        ['名詞', '形容詞', '副詞'], 1,
-        '「美しい」は性質や状態を表し、終止形が「い」で終わる形容詞です。'],
-      ['古語「あはれなり」の意味として適切なのは？',
-        ['趣深い', 'とても速い', '騒がしい'], 0,
-        '「あはれなり」は、しみじみとした趣や感動を表します。']
-    ]
-  },
-  {
-    name: '理科', icon: '⚗', tint: '#eee6f4',
-    desc: '物理・化学・生物・地学',
-    questions: [
-      ['抵抗が6Ω、電流が2Aのとき、電圧は？',
-        ['3V', '8V', '12V'], 2,
-        'オームの法則 V = RI より、6 × 2 = 12V です。'],
-      ['植物が光合成で吸収する気体は？',
-        ['酸素', '二酸化炭素', '窒素'], 1,
-        '光合成では二酸化炭素と水を使い、光のエネルギーでデンプンなどをつくります。'],
-      ['酸性の水溶液で青色リトマス紙はどうなる？',
-        ['赤色になる', '青色のまま', '緑色になる'], 0,
-        '酸性の水溶液は青色リトマス紙を赤色に変えます。']
-    ]
-  },
-  {
-    name: '社会', icon: '◎', tint: '#f5efd9',
-    desc: '地理・歴史・公民',
-    questions: [
-      ['日本国憲法の三大原則に含まれないものは？',
-        ['国民主権', '平和主義', '王権神授説'], 2,
-        '三大原則は「国民主権」「基本的人権の尊重」「平和主義」です。'],
-      ['鎌倉幕府で、将軍と御家人の主従関係を表す言葉は？',
-        ['御恩と奉公', '楽市と楽座', '殖産興業'], 0,
-        '将軍は領地の保障などの御恩を与え、御家人は軍役などの奉公をしました。'],
-      ['日本の標準時子午線の経度は？',
-        ['東経135度', '東経120度', '西経135度'], 0,
-        '日本の標準時子午線は東経135度で、兵庫県明石市を通ります。']
-    ]
-  }
-];
+let subjects = [];
+
+function renderSubjects() {
+  $('subjectList').replaceChildren();
+  subjects.forEach((s, i) => {
+    const button = document.createElement('button');
+    button.className = 'subject';
+    button.style.setProperty('--tint', s.tint);
+    const icon = document.createElement('span'); icon.className = 'icon'; icon.textContent = s.icon;
+    const name = document.createElement('strong'); name.textContent = s.name;
+    const desc = document.createElement('p'); desc.textContent = s.desc;
+    const link = document.createElement('span'); link.className = 'link'; link.textContent = '演習する ↗';
+    button.append(icon, name, desc, link);
+    button.onclick = () => openQuiz(i);
+    $('subjectList').append(button);
+  });
+}
 
 const $ = id => document.getElementById(id);
 let state = { answers: [], focus: [] };
@@ -120,17 +60,7 @@ $('date').textContent = new Date().toLocaleDateString('ja-JP', {
   month: 'long', day: 'numeric', weekday: 'long'
 });
 
-subjects.forEach((s, i) => {
-  const button = document.createElement('button');
-  button.className = 'subject';
-  button.style.setProperty('--tint', s.tint);
-  button.innerHTML =
-    `<span class="icon">${s.icon}</span>` +
-    `<strong>${s.name}</strong><p>${s.desc}</p>` +
-    '<span class="link">演習する ↗</span>';
-  button.onclick = () => openQuiz(i);
-  $('subjectList').append(button);
-});
+
 
 let selected = 0;
 let questionIndex = 0;
@@ -264,6 +194,11 @@ const aichi = createAichiPractice({ getAccount: () => account, saveEvent });
 
 function resetSession() {
   aichi.reset();
+  subjects = [];
+  renderSubjects();
+  $('question').textContent = '';
+  $('answers').replaceChildren();
+  $('feedback').textContent = '';
   state = { answers: [], focus: [] };
   clearInterval(interval);
   interval = null;
@@ -277,6 +212,11 @@ function resetSession() {
 
 account = connectAccount({
   onReset: resetSession,
+  onQuestions(bank) {
+    subjects = bank.subjects;
+    renderSubjects();
+    aichi.setQuestions(bank.aichiQuestions);
+  },
   onRecords(records) {
     aichi.update(records);
     state = {

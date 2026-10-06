@@ -1,22 +1,6 @@
-import { pdfInspiredQuestions } from './aichi-bank.js';
-// Original practice questions, not official Aichi examination questions.
-const basicQuestions = [
- {id:'aichi-r9-math-1',subject:'数学',topic:'二次方程式',text:'方程式 x² − 5x + 6 = 0 の解の組み合わせは？',choices:['1 と 6','2 と 3','−2 と −3','−1 と −6'],answer:1,explanation:'x² − 5x + 6 = (x − 2)(x − 3)。それぞれの因数を0とすると x = 2, 3 です。'},
- {id:'aichi-r9-math-2',subject:'数学',topic:'確率',text:'大小2個のさいころを同時に投げる。目の和が7になる確率は？',choices:['1/12','1/9','1/6','1/3'],answer:2,explanation:'全36通りのうち、(1,6),(2,5),(3,4),(4,3),(5,2),(6,1)の6通り。6/36 = 1/6 です。'},
- {id:'aichi-r9-english-1',subject:'英語',topic:'受動態',text:'空欄に入る語は？ This bridge (   ) in 1990.',choices:['builds','built','was built','has built'],answer:2,explanation:'橋は「建てられた」ので受動態。過去の出来事は was / were + 過去分詞で表します。'},
- {id:'aichi-r9-english-2',subject:'英語',topic:'短文読解',text:'Mika usually walks to school. Today it was raining, so she took the bus. How did Mika go to school today?',choices:['On foot.','By bus.','By bike.','By train.'],answer:1,explanation:'普段は徒歩ですが、今日は雨のためバスに乗りました。Today と took the bus が手がかりです。'},
- {id:'aichi-r9-japanese-1',subject:'国語',topic:'説明文読解',text:'「便利さだけを求めると、資源を使いすぎることがある。だから、長く使える物を選ぶ姿勢も大切だ。」筆者の主張として最も適切なのは？',choices:['便利な物をすべてなくすべきだ','資源は使うほど増える','物を長く使う視点も必要だ','便利さだけを基準にすべきだ'],answer:2,explanation:'「だから」の後に結論があります。「長く使える物を選ぶ姿勢も大切」が筆者の主張です。'},
- {id:'aichi-r9-japanese-2',subject:'国語',topic:'敬語',text:'「先生が話す」を、先生への尊敬語にした表現は？',choices:['先生が申す','先生がおっしゃる','先生が申し上げる','先生が拝見する'],answer:1,explanation:'「おっしゃる」は「言う」の尊敬語。「申す」「申し上げる」は謙譲語です。'},
- {id:'aichi-r9-science-1',subject:'理科',topic:'化学変化と質量',text:'銅4.0gを十分に加熱すると酸化銅5.0gになった。同じ条件で銅8.0gからできる酸化銅の質量は？',choices:['9.0g','10.0g','12.0g','13.0g'],answer:1,explanation:'十分に反応したときの質量比は 銅 : 酸化銅 = 4 : 5。銅が2倍なので酸化銅も2倍の10.0gです。'},
- {id:'aichi-r9-science-2',subject:'理科',topic:'地震',text:'ある地震で、震源から遠い観測地点ほど一般に長くなる時間は？',choices:['P波とS波の到着の差（初期微動継続時間）','地震の発生時刻','1日の長さ','P波の速さ'],answer:0,explanation:'P波はS波より速く進みます。距離が長いほど両者の到着時刻の差が大きくなります。'},
- {id:'aichi-r9-social-1',subject:'社会',topic:'地理・中部地方',text:'中京工業地帯の特色として最も適切なのは？',choices:['自動車など輸送用機械の生産が盛ん','酪農だけで成り立つ','工業製品を生産しない','日本の最北端に位置する'],answer:0,explanation:'愛知県を中心とする中京工業地帯は、自動車などの輸送用機械をはじめ製造業が盛んです。'},
- {id:'aichi-r9-social-2',subject:'社会',topic:'公民・三権分立',text:'法律が憲法に違反していないかを判断する権限を持つのは？',choices:['内閣だけ','国会だけ','裁判所','都道府県知事'],answer:2,explanation:'裁判所には違憲審査権があります。司法が立法・行政をチェックする仕組みの一つです。'}
-];
-
-export const aichiQuestions = [...basicQuestions, ...pdfInspiredQuestions];
-
 export function createAichiPractice({getAccount,saveEvent}) {
  const $=id=>document.getElementById(id);
+ let aichiQuestions=[];
  let records=[],queue=[],position=0,responses=[],mode='practice',running=false,deadline=0,timer=null,locked=false;
  const day=()=>new Date().toLocaleDateString('sv-SE');
  const stamp=e=>e.createdAt?.toMillis?.() ?? (e.createdAt?.seconds ? e.createdAt.seconds*1000 : Number.MAX_SAFE_INTEGER);
@@ -52,7 +36,7 @@ export function createAichiPractice({getAccount,saveEvent}) {
    const row=document.createElement('span');row.textContent=subject+' '+(attempts.length?Math.round(attempts.filter(e=>e.correct).length/attempts.length*100)+'%':'未演習');$('aichiBreakdown').append(row);
   });
  }
- function reset(){clearInterval(timer);timer=null;running=false;locked=false;queue=[];responses=[];update([]);$('aichiQuiz').close();}
+ function reset(){clearInterval(timer);timer=null;running=false;locked=false;queue=[];responses=[];aichiQuestions=[];update([]);$('aichiQuestionText').textContent='';$('aichiChoices').replaceChildren();$('aichiFeedback').textContent='';$('aichiExplanations').replaceChildren();$('aichiQuiz').close();}
  function start(nextMode){
   if(!getAccount()?.ready){$('accountMessage').textContent='ログインしてから勉強を始めてください。';$('accountTitle').scrollIntoView({behavior:'smooth'});return;}
   mode=nextMode;queue=selection(mode==='review'?mistakes():filteredQuestions());
@@ -97,5 +81,5 @@ export function createAichiPractice({getAccount,saveEvent}) {
  const close=()=>{clearInterval(timer);timer=null;running=false;$('aichiQuiz').close();};
  $('aichiClose').onclick=close;$('aichiQuiz').addEventListener('cancel',close);$('aichiQuiz').addEventListener('close',()=>{clearInterval(timer);timer=null;running=false;});
  ['aichiSource','aichiSubject','aichiSize'].forEach(id=>$(id).addEventListener('change',()=>update(records)));
- update([]);return {update,reset};
+ update([]);return {update,reset,setQuestions(questions){aichiQuestions=questions;update(records);}};
 }
