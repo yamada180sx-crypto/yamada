@@ -36,3 +36,9 @@ STUDY_APP_URL=http://127.0.0.1:8001 node tests/smoke.cjs
 ```
 
 `tests/smoke.cjs` はFirebase SDKの応答を模擬し、実サービスへの書き込みは行いません。Chromiumの実行ファイルは既定で `/usr/bin/chromium` を使います。公開環境のFirebaseルール・Googleログイン・同期の確認は別途必要です。
+
+### ログイン前の画面
+
+勉強画面とナビゲーションは初期状態で非表示です。Googleログイン、allowedUsersの利用許可確認、学習記録の読み込みに成功した後に表示します。ログアウト・記録のアクセス拒否では非表示に戻し、演習とタイマーを終了します。
+
+GitHub Pages上のHTML・JavaScript・問題データは公開ファイルです。この画面制御は問題データ自体を非公開にするものではありません。個人の学習記録へのアクセスはFirestoreルールで保護します。

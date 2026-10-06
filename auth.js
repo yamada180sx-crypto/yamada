@@ -4,6 +4,11 @@ export function connectAccount({ onReset, onRecords }) {
   const message = document.getElementById('accountMessage');
   const login = document.getElementById('loginButton');
   const logout = document.getElementById('logoutButton');
+  const setAccess = allowed => {
+    document.getElementById('studyContent').hidden = !allowed;
+    document.getElementById('studyNav').hidden = !allowed;
+  };
+  setAccess(false);
 
   const account = {
     ready: false,
@@ -54,6 +59,7 @@ export function connectAccount({ onReset, onRecords }) {
   const reset = () => {
     generation++;
     account.ready = false;
+    setAccess(false);
     user = null;
     pending = 0;
     hasWriteError = false;
@@ -190,11 +196,13 @@ export function connectAccount({ onReset, onRecords }) {
                 if (current !== generation) return;
                 onRecords(snapshot.docs.map(doc => doc.data()));
                 account.ready = true;
+                setAccess(true);
                 renderStatus(snapshot.metadata.fromCache);
               },
               error => {
                 if (current !== generation) return;
                 account.ready = false;
+                setAccess(false);
                 onReset();
                 show(errorText(error));
               }
