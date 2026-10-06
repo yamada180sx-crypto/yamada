@@ -85,16 +85,22 @@
   <h2>愛知県公立高校対策</h2>
   <p>
     令和9年度入学に向けた、5教科の基礎確認。
-    4択のオリジナル問題10問で、解答と復習を練習しよう。
+    令和7・8年度のPDFで確認した分野を参考にした40問を追加。全50問のオリジナル問題で、解答と復習を練習しよう。
   </p>
   <p class="small">
     公式過去問ではありません。
-    本番の出題形式・試験時間との一致は未確認です。
+    問題文・図・音声は過去問の転載ではなく、今回の問題はすべて4択です。本番の出題形式・試験時間との一致は未確認です。
     最新の入試案内は公式サイトで確認してください。
   </p>
 
+  <div class="aichi-filters">
+    <label>問題セット<select id="aichiSource"><option value="all">すべて（50問）</option><option value="8">令和8年度PDF参考（20問）</option><option value="7">令和7年度PDF参考（20問）</option><option value="basic">基礎オリジナル（10問）</option></select></label>
+    <label>教科<select id="aichiSubject"><option value="all">5教科すべて</option><option>数学</option><option>英語</option><option>国語</option><option>理科</option><option>社会</option></select></label>
+    <label>1回の問題数<select id="aichiSize"><option value="10">10問</option><option value="20">20問</option><option value="all">選んだ問題すべて</option></select></label>
+  </div>
+  <p id="aichiAvailable" role="status"></p>
   <div class="aichi-actions">
-    <button class="primary" id="aichiPractice">10問を演習する</button>
+    <button class="primary" id="aichiPractice">選んだ問題を演習する</button>
     <button class="secondary" id="aichiReview" disabled>
       苦手問題を復習
     </button>

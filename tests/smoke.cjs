@@ -38,6 +38,7 @@ await page.locator('.subject').first().click();await page.getByRole('button',{na
 await page.locator('#next').click();await page.evaluate(()=>window.writeFail=true);await page.getByRole('button',{name:'−12',exact:true}).click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('保存できませんでした'));
 await page.locator('#closeQuiz').click();
 await page.evaluate(()=>window.writeFail=false);
+await page.locator('#aichiSource').selectOption('basic');
 assert.ok((await page.title()).includes('蒼の受験ノート'));
 await page.locator('#aichiPractice').click();
 await page.locator('#aichiChoices button').first().click();
@@ -75,6 +76,29 @@ for (const index of [1,2,2,1,2,1,1,0,0,2]) {
 assert.equal(await page.locator('#aichiResultTitle').textContent(),'演習完了 · 10 / 10問正解');
 await page.locator('#aichiClose').click();
 console.log('PASS (mock Firebase): complete 10-question run, timer expiration, unanswered count and all explanations');
+await page.locator('#aichiSource').selectOption('8');
+await page.locator('#aichiSize').selectOption('all');
+assert.equal(await page.locator('#aichiAvailable').textContent(),'選択中 20問 / 全50問');
+await page.locator('#aichiSubject').selectOption('理科');
+assert.equal(await page.locator('#aichiAvailable').textContent(),'選択中 4問 / 全50問');
+await page.locator('#aichiPractice').click();
+assert.ok((await page.locator('#aichiQuestionMeta').textContent()).includes('令和8年度PDF参考'));
+await page.locator('#aichiChoices button').first().click();
+await page.locator('#aichiClose').click();
+await page.locator('#aichiSubject').selectOption('all');
+await page.locator('#aichiSource').selectOption('7');
+await page.locator('#aichiPractice').click();
+for(let i=0;i<20;i++){
+ const text=await page.locator('#aichiQuestionText').textContent();
+ const answer=await page.evaluate(async text=>{const {aichiQuestions}=await import('/aichi.js');return aichiQuestions.find(q=>q.text===text).answer;},text);
+ await page.locator('#aichiChoices button').nth(answer).click();
+ await page.locator('#aichiNext').click();
+}
+assert.equal(await page.locator('#aichiResultTitle').textContent(),'演習完了 · 20 / 20問正解');
+await page.locator('#aichiClose').click();
+await page.locator('#aichiSource').selectOption('all');
+assert.equal(await page.locator('#aichiAvailable').textContent(),'選択中 50問 / 全50問');
+console.log('PASS (mock Firebase): 50-question bank, year/subject filters, full 20-question reference set');
 await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 console.log('PASS (mock Firebase): popup error, unapproved login denial, authorized exercise + UID-scoped save, save error, logout reset, separate user records, mobile width');
 await browser.close();

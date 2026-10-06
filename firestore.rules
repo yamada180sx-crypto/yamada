@@ -21,7 +21,7 @@ service cloud.firestore {
             && request.resource.data.keys().hasOnly(['kind','date','subject','correct','createdAt','questionId'])
             && (!('questionId' in request.resource.data)
               || (request.resource.data.questionId is string
-                && request.resource.data.questionId.matches('^aichi-r9-(math|english|japanese|science|social)-[12]$')))
+                && request.resource.data.questionId.matches('^aichi-r[789]-(math|english|japanese|science|social)-[1-9][0-9]{0,2}$')))
             && request.resource.data.kind == 'answer'
             && request.resource.data.subject in ['数学','英語','国語','理科','社会']
             && request.resource.data.correct is bool)
