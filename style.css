@@ -42,3 +42,5 @@ button:disabled {
     flex-direction: column;
   }
 }
+
+.aichi-panel{margin:0 0 32px;background:#edf2e9}.aichi-panel h2{margin-top:14px}.aichi-panel a{color:var(--green)}.aichi-actions,.aichi-mock{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.aichi-actions>span{font-size:12px}.aichi-breakdown{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.aichi-breakdown span{background:white;border:1px solid #dae4d5;border-radius:8px;padding:10px 14px;font-size:12px}.aichi-mock{padding-top:10px;border-top:1px solid #dce4d8}.aichi-mock select{padding:10px;border-radius:8px;border:1px solid #c8d6c2;color:var(--ink);background:white;font:inherit}#aichiChoices{display:grid;gap:10px}#aichiQuestionText{line-height:1.8;margin:18px 0}#aichiTime{font-variant-numeric:tabular-nums}#aichiExplanations article{border-top:1px solid #dce4d8;padding-top:15px}#aichiExplanations h3{font-size:14px}#aichiExplanations p{font-size:13px}

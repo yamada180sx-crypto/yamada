@@ -1,0 +1,81 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+const page=await browser.newPage();
+await page.route('**/firebase-config.js',route=>route.fulfill({contentType:'text/javascript',body:'export const firebaseConfig=null;'}));
+await page.goto((process.env.STUDY_APP_URL || 'http://127.0.0.1:8001'));
+await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('準備中'));
+assert.equal(await page.locator('#loginButton').isDisabled(),true);
+await page.locator('.subject').first().click();assert.equal(await page.locator('#quiz').evaluate(e=>e.open),false);
+await page.locator('#timerStart').click();assert.equal(await page.locator('#clock').textContent(),'25:00');
+console.log('PASS: unconfigured app does not start exercises or timer');
+await page.route('**/firebase-config.js',route=>route.fulfill({contentType:'text/javascript',body:"export const firebaseConfig={apiKey:'test',authDomain:'test',projectId:'test'};"}));
+await page.route('https://www.gstatic.com/firebasejs/11.10.0/*',route=>{
+let body='';
+if(route.request().url().endsWith('firebase-app.js'))body='export const initializeApp=()=>({});';
+if(route.request().url().endsWith('firebase-auth.js'))body=`
+export const getAuth=()=>({});export const browserSessionPersistence={};export const setPersistence=async()=>{};
+export class GoogleAuthProvider{setCustomParameters(){}}
+export const onAuthStateChanged=(auth,cb)=>{window.authCallback=cb;cb(null);};
+export const signInWithPopup=async()=>{if(window.popupFail)throw {code:'auth/popup-blocked'};await window.authCallback({uid:window.uid||'daughter',displayName:'テスト利用者'});};
+export const signOut=async()=>{await window.authCallback(null);};`;
+if(route.request().url().endsWith('firebase-firestore.js'))body=`
+export const getFirestore=()=>({});export const doc=(db,...parts)=>parts.join('/');export const collection=doc;
+export const getDocFromServer=async()=>({exists:()=>!window.denied});
+const rows={};window.paths=[];
+const snapshot=uid=>({docs:(rows[uid]||[]).map(data=>({data:()=>data})),metadata:{fromCache:false}});
+export const onSnapshot=(path,options,cb)=>{const uid=path.split('/')[1];window.snapshotCallback=()=>cb(snapshot(uid));window.snapshotCallback();return ()=>{window.snapshotCallback=null;};};
+export const serverTimestamp=()=>0;
+export const addDoc=async(path,event)=>{if(window.writeFail)throw {code:'permission-denied'};window.paths.push(path);const uid=path.split('/')[1];(rows[uid]??=[]).push(event);window.snapshotCallback?.();};`;
+return route.fulfill({contentType:'text/javascript',body});
+});
+await page.reload();await page.waitForFunction(()=>!document.getElementById('loginButton').disabled);
+await page.evaluate(()=>window.popupFail=true);await page.locator('#loginButton').click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('ブロック'));
+await page.evaluate(()=>{window.popupFail=false;window.denied=true;});await page.locator('#loginButton').click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('利用許可がありません'));assert.equal(await page.locator('#logoutButton').isVisible(),false);
+await page.evaluate(()=>window.denied=false);await page.locator('#loginButton').click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('同期済み'));
+await page.locator('.subject').first().click();await page.getByRole('button',{name:'x = 6',exact:true}).click();await page.waitForFunction(()=>document.getElementById('todayCount').textContent.includes('1'));assert.equal(await page.locator('#accuracy').textContent(),'100%');assert.deepEqual(await page.evaluate(()=>window.paths),['users/daughter/events']);
+await page.locator('#next').click();await page.evaluate(()=>window.writeFail=true);await page.getByRole('button',{name:'−12',exact:true}).click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('保存できませんでした'));
+await page.locator('#closeQuiz').click();
+await page.evaluate(()=>window.writeFail=false);
+assert.ok((await page.title()).includes('蒼の受験ノート'));
+await page.locator('#aichiPractice').click();
+await page.locator('#aichiChoices button').first().click();
+await page.locator('#aichiClose').click();
+assert.equal(await page.locator('#aichiMistakes').textContent(),'1問');
+await page.locator('#aichiReview').click();
+await page.locator('#aichiChoices button').nth(1).click();
+await page.locator('#aichiNext').click();
+assert.equal(await page.locator('#aichiResultTitle').textContent(),'演習完了 · 1 / 1問正解');
+await page.locator('#aichiClose').click();
+assert.equal(await page.locator('#aichiMistakes').textContent(),'0問');
+await page.locator('#aichiMock').click();
+await page.locator('#aichiChoices button').nth(1).click();
+assert.ok(!(await page.locator('#aichiFeedback').textContent()).includes('因数'));
+await page.locator('#aichiNext').click();
+await page.locator('#aichiClose').click();
+assert.equal(await page.locator('#aichiQuiz').evaluate(e=>e.open),false);
+console.log('PASS (mock Firebase): Aichi practice, mistake review, resolved mistake, timed exercise hides explanations, title');
+await page.locator('#timerStart').click();await page.locator('#logoutButton').click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('Googleでログインして'));assert.equal(await page.locator('#clock').textContent(),'25:00');assert.equal((await page.locator('#todayCount').textContent()).trim(),'0 問');
+await page.evaluate(()=>{window.uid='parent';window.writeFail=false;});await page.locator('#loginButton').click();await page.waitForFunction(()=>document.getElementById('accountMessage').textContent.includes('同期済み'));assert.equal((await page.locator('#todayCount').textContent()).trim(),'0 問');
+await page.clock.install();
+await page.locator('#aichiMock').click();
+await page.locator('#aichiChoices button').nth(1).click();
+await page.locator('#aichiNext').click();
+await page.clock.fastForward(600001);
+assert.equal(await page.locator('#aichiResultTitle').textContent(),'時間終了 · 1 / 10問正解');
+assert.equal(await page.locator('#aichiExplanations article').count(),10);
+assert.ok((await page.locator('#aichiResultNote').textContent()).includes('未解答 9問'));
+await page.locator('#aichiClose').click();
+await page.locator('#aichiPractice').click();
+for (const index of [1,2,2,1,2,1,1,0,0,2]) {
+ await page.locator('#aichiChoices button').nth(index).click();
+ await page.locator('#aichiNext').click();
+}
+assert.equal(await page.locator('#aichiResultTitle').textContent(),'演習完了 · 10 / 10問正解');
+await page.locator('#aichiClose').click();
+console.log('PASS (mock Firebase): complete 10-question run, timer expiration, unanswered count and all explanations');
+await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+console.log('PASS (mock Firebase): popup error, unapproved login denial, authorized exercise + UID-scoped save, save error, logout reset, separate user records, mobile width');
+await browser.close();
+})().catch(e=>{console.error(e);process.exit(1);});

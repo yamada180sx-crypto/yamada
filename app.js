@@ -1,5 +1,6 @@
 'use strict';
 import { connectAccount } from './auth.js';
+import { createAichiPractice } from './aichi.js';
 
 const subjects = [
   {
@@ -259,7 +260,10 @@ $('timerReset').onclick = () => {
 
 renderStats();
 
+const aichi = createAichiPractice({ getAccount: () => account, saveEvent });
+
 function resetSession() {
+  aichi.reset();
   state = { answers: [], focus: [] };
   clearInterval(interval);
   interval = null;
@@ -274,6 +278,7 @@ function resetSession() {
 account = connectAccount({
   onReset: resetSession,
   onRecords(records) {
+    aichi.update(records);
     state = {
       answers: records.filter(e => e.kind === 'answer'),
       focus: records.filter(e => e.kind === 'focus')

@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function approved(uid) {
+      return request.auth != null
+        && request.auth.uid == uid
+        && exists(/databases/$(database)/documents/allowedUsers/$(uid));
+    }
+    match /allowedUsers/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    match /users/{uid}/events/{eventId} {
+      allow read: if approved(uid);
+      allow create: if approved(uid)
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.createdAt == request.time
+        && (
+          (request.resource.data.keys().hasAll(['kind','date','subject','correct','createdAt'])
+            && request.resource.data.keys().hasOnly(['kind','date','subject','correct','createdAt','questionId'])
+            && (!('questionId' in request.resource.data)
+              || (request.resource.data.questionId is string
+                && request.resource.data.questionId.matches('^aichi-r9-(math|english|japanese|science|social)-[12]$')))
+            && request.resource.data.kind == 'answer'
+            && request.resource.data.subject in ['数学','英語','国語','理科','社会']
+            && request.resource.data.correct is bool)
+          || (request.resource.data.keys().hasAll(['kind','date','minutes','createdAt'])
+            && request.resource.data.keys().hasOnly(['kind','date','minutes','createdAt'])
+            && request.resource.data.kind == 'focus'
+            && request.resource.data.minutes == 25)
+        );
+      allow update, delete: if false;
+    }
+  }
+}
